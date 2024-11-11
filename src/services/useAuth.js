@@ -15,7 +15,7 @@ const useAuth = () => {
   const API_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5000';
 
   // Memoize API instance
-  const api = useMemo(() => {
+  const api = useMemo(() => { 
     return axios.create({
       baseURL: API_URL,
       withCredentials: true, // Important for sending/receiving cookies

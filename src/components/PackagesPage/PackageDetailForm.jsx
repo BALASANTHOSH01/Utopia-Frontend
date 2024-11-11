@@ -20,6 +20,9 @@ const PackageDetailForm = ({ details, clientSecret, setClientSecret, setPayment,
   const [bookingId, setBookingId] = useState(null);
 
   const { user } = useContext(UserContext);
+
+  // const userdetails = JSON.parse(localStorage.getItem("user"));
+
   const userId = user?.id || null;
   const trekId = useLocation().pathname.split("/")[2];
   const navigate = useNavigate();

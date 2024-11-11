@@ -76,7 +76,8 @@ const HoverDropdown = () => {
                 backgroundColor: 'white',
                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)',
                 padding: '10px',
-                minWidth: '150px',
+                marginLeft:"-1rem",
+                minWidth: '200px',
                 zIndex: 1,
               }}
             >

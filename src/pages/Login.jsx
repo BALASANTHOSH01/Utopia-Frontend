@@ -195,9 +195,9 @@ const Login = () => {
 
             {/* Social Login */}
             <div className="flex flex-col w-full gap-4 items-center">
-              <button className="w-full p-3 text-[#565E6D] border border-[#565E6D] rounded-[10px] flex items-center justify-center gap-2 popp">
+              {/* <button className="w-full p-3 text-[#565E6D] border border-[#565E6D] rounded-[10px] flex items-center justify-center gap-2 popp">
                 <FaFacebookF className="text-[#565E6D]" /> Login with Facebook
-              </button>
+              </button> */}
               <button
                 onClick={handleGoogleLogin}
                 className="w-full p-3 text-[#565E6D] border border-[#565E6D] rounded-[10px] flex items-center justify-center gap-2 popp"

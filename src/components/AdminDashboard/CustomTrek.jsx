@@ -1,21 +1,35 @@
 import { useState, useEffect } from "react";
 import useAuth from "../../services/useAuth";
 import { toast } from "sonner";
-import axios from "axios";
 
 const CustomTrek = () => {
   const [treks, setTreks] = useState([]);
   const [selectedTrek, setSelectedTrek] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [amount, setAmount] = useState("");  // Changed to empty string
+  const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { api } = useAuth();
 
-  // Fetch treks
+  // Define headers configuration
+  const getRequestConfig = (method, data = null) => ({
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    withCredentials: true,
+    ...(data && { data })
+  });
+
+  // Fetch treks with proper config
   const fetchTreks = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get("/api/customeTrek/all");
+      const response = await api.request({
+        ...getRequestConfig('GET'),
+        url: "/api/customeTrek/all"
+      });
+
       if (response.data?.data?.customTreks) {
         setTreks(response.data.data.customTreks);
       }
@@ -31,13 +45,11 @@ const CustomTrek = () => {
     fetchTreks();
   }, []);
 
-  // Modal scroll lock effect
   useEffect(() => {
     if (showModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
-      // Reset amount when modal closes
       setAmount("");
     }
     return () => {
@@ -49,7 +61,6 @@ const CustomTrek = () => {
     try {
       setIsLoading(true);
       
-      // Validate amount
       const numAmount = Number(amount);
       if (!numAmount || numAmount <= 0) {
         toast.error("Please enter a valid amount");
@@ -61,10 +72,10 @@ const CustomTrek = () => {
         amount: numAmount
       };
   
-      // Use the new patch helper method
-      // const response = await api.patch(`/api/customeTrek/${trekId}/approval`, data);
-      
-      const response = await axios.patch(`${import.meta.env.VITE_LOCAL_API_URL}/api/customeTrek/${trekId}/approval`, data);
+      const response = await api.request({
+        ...getRequestConfig('PATCH', data),
+        url: `/api/customeTrek/${trekId}/approval`
+      });
       
       if (response.data?.status === "success") {
         toast.success("Trek approved successfully!");
@@ -78,21 +89,25 @@ const CustomTrek = () => {
         );
       }
     } catch (error) {
-      console.error("Error approving trek:", error);
+      console.error("Error approving trek:", {
+        error,
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
       toast.error(error.response?.data?.message || "Failed to approve trek");
     } finally {
       setIsLoading(false);
     }
   };
-  
 
   const handleCancel = async (trekId) => {
     try {
       setIsLoading(true);
       
-      // Use the new patch helper method
-      const response = await api.patch(`/api/customeTrek/${trekId}/approval`, {
-        approval: "cancelled"
+      const response = await api.request({
+        ...getRequestConfig('PATCH', { approval: "cancelled" }),
+        url: `/api/customeTrek/${trekId}/approval`
       });
       
       if (response.data?.status === "success") {
@@ -105,7 +120,12 @@ const CustomTrek = () => {
         );
       }
     } catch (error) {
-      console.error("Error cancelling trek:", error);
+      console.error("Error cancelling trek:", {
+        error,
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
       toast.error(error.response?.data?.message || "Failed to cancel trek");
     } finally {
       setIsLoading(false);
