@@ -32,7 +32,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/forgotPassword",
+        "http://localhost:5000/api/auth/forgotPassword",
         {
           method: "POST",
           headers: {
@@ -88,7 +88,7 @@ const ForgotPassword = () => {
     }
     try {
       const response = await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/resetPassword",
+        "http://localhost:5000/api/auth/resetPassword",
         {
           method: "POST",
           headers: {

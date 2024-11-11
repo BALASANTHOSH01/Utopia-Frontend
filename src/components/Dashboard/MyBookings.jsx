@@ -13,7 +13,7 @@ const MyBookings = () => {
       try {
         // console.log(token)
         const response = await axios.get(
-          "https://tic-himalayan-utopia-backend-v1.onrender.com/api/bookings/my-bookings",
+          "http://localhost:5000/api/bookings/my-bookings",
           {
             headers: {
               Authorization: `Bearer ${token}`,

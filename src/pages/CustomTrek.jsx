@@ -4,7 +4,7 @@ import Footer from "../components/Common/Footer";
 import DatePicker from "../components/Common/DatePicker";
 import InputField from "../components/Common/InputField";
 import { LuPencil } from "react-icons/lu";
-import axios from "axios";
+import useAuth from "../services/useAuth";
 import { toast } from "sonner";
 
 const CustomTrek = () => {
@@ -18,6 +18,8 @@ const CustomTrek = () => {
   const [guests, setGuests] = useState(1);
   const [trekName, setTrekName] = useState("");
   const [features, setFeatures] = useState([]);
+
+  const {api} = useAuth();
 
   // Format date for API
   const formatDateForAPI = (date) => {
@@ -120,14 +122,9 @@ const CustomTrek = () => {
         features,
       };
 
-      const response = await axios.post(
-        "/customeTrek/create",
-        trekData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+      const response = await api.post(
+        "/api/customeTrek/create",
+        trekData
       );
 
       // Reset form on success

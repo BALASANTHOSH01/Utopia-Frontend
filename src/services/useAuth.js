@@ -1,185 +1,195 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { UserContext } from '../context/UserContext.jsx';
+import { useCallback, useContext, useEffect, useRef, useState, useMemo } from 'react';
 
 const useAuth = () => {
   const navigate = useNavigate();
+  const { saveUser, clearUser } = useContext(UserContext);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const isInitialLoad = useRef(true);
+  const isRefreshingToken = useRef(false);
+  const refreshCooldown = useRef(false);
 
-  // Constants
-  const TOKEN_REFRESH_INTERVAL = 14 * 60 * 1000; // 14 minutes
-  const API_URL = 'https://tic-himalayan-utopia-backend-v1.onrender.com/api';
+  const API_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5000';
 
-  // Check if token is expired
-  const isTokenExpired = (token) => {
-    if (!token) return true;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 < Date.now();
-    } catch (error) {
-      console.error('Error checking token expiration:', error);
-      return true;
-    }
-  };
+  // Memoize API instance
+  const api = useMemo(() => {
+    return axios.create({
+      baseURL: API_URL,
+      withCredentials: true, // Important for sending/receiving cookies
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }, [API_URL]);
 
-  // Get stored tokens
-  const getStoredTokens = () => ({
-    token: localStorage.getItem('token'),
-    refreshToken: localStorage.getItem('refreshToken')
-  });
-
-  // Set new tokens
-  const setTokens = (accessToken, refreshToken) => {
-    localStorage.setItem('token', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    setIsAuthenticated(true);
-  };
-
-  // Clear tokens and auth state
-  const clearTokens = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+  const clearAuthData = useCallback(() => {
+    clearUser();
     setIsAuthenticated(false);
-  }, []);
+  }, [clearUser]);
 
-  // Handle logout
-  const logout = useCallback(() => {
-    clearTokens();
-    navigate('/login');
-  }, [clearTokens, navigate]);
-
-  // Refresh access token
-  const refreshAccessToken = useCallback(async (silent = false) => {
-    const { token, refreshToken } = getStoredTokens();
-
-    if (!token || !refreshToken) {
-      if (!silent) {
-        console.warn("No token or refresh token available for refreshing.");
-        logout();
-      }
-      return null;
-    }
-
+  const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${API_URL}/refreshToken`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'refresh-token': refreshToken
-        }
-      });
+      await api.post('/api/auth/logout');
+      console.log("Logout successful");
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      clearAuthData();
+      setIsLoading(false);
+      navigate('/login');
+    }
+  }, [navigate, api, clearAuthData]);
 
-      const data = await response.json();
+  const refreshAccessToken = useCallback(async () => {
+    // Prevent multiple simultaneous refresh attempts
+    if (isRefreshingToken.current || refreshCooldown.current) {
+      return false;
+    }
 
-      if (response.ok && data?.data?.tokens) {
-        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data.data.tokens;
-        setTokens(newAccessToken, newRefreshToken);
-        return newAccessToken;
-      } else {
-        throw new Error(data.message || 'Failed to refresh token');
+    isRefreshingToken.current = true;
+    try {
+      const response = await api.post('/api/refreshToken');
+      
+      if (response.status === 200) {
+        console.log("Token refresh successful");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      if (error.response?.status === 401) {
+        // If refresh token is invalid/expired, logout user
+        await logout();
+      }
+      return false;
+    } finally {
+      isRefreshingToken.current = false;
+      // Prevent rapid successive refresh attempts
+      refreshCooldown.current = true;
+      setTimeout(() => {
+        refreshCooldown.current = false;
+      }, 5000); // 5 second cooldown
+    }
+  }, [api, logout]);
+
+  const checkAuthStatus = useCallback(async () => {
+    if (!isInitialLoad.current) return;
+    isInitialLoad.current = false;
+
+    try {
+      console.log("Verifying user status...");
+      setIsLoading(true);
+      
+      const response = await api.get('/api/auth/verifyUser');
+      
+      if (response.data?.user) {
+        saveUser(response.data.user);
+        setIsAuthenticated(true);
+        console.log("User verification successful");
       }
     } catch (error) {
-      console.error('Error refreshing access token:', error);
-      if (!silent) {
-        logout();
+      console.error('Error verifying user:', error);
+      if (error.response?.status === 401) {
+        // Try to refresh token once if verification fails
+        const refreshed = await refreshAccessToken();
+        if (!refreshed) {
+          await logout();
+        } else {
+          // If refresh successful, try verification again
+          try {
+            const retryResponse = await api.get('/api/auth/verifyUser');
+            if (retryResponse.data?.user) {
+              saveUser(retryResponse.data.user);
+              setIsAuthenticated(true);
+            }
+          } catch (retryError) {
+            console.error('Error in retry verification:', retryError);
+            await logout();
+          }
+        }
       }
-      return null;
     } finally {
       setIsLoading(false);
     }
-  }, [logout]);
+  }, [api, logout, saveUser, refreshAccessToken]);
 
-  // Check auth status
-  const checkAuthStatus = useCallback(async () => {
-    const { token, refreshToken } = getStoredTokens();
-
-    if (!token || !refreshToken) {
-      clearTokens();
-      setIsLoading(false);
-      return;
-    }
-
-    if (isTokenExpired(token)) {
-      const newToken = await refreshAccessToken(true);
-      if (!newToken) {
-        clearTokens();
-      }
-    } else {
-      setIsAuthenticated(true);
-    }
-    setIsLoading(false);
-  }, [refreshAccessToken, clearTokens]);
-
-  // Setup automatic token refresh
   useEffect(() => {
-    let refreshInterval;
+    // Queue for pending requests during token refresh
+    let refreshQueue = [];
+    let isRefreshing = false;
 
-    if (isAuthenticated) {
-      refreshInterval = setInterval(() => {
-        refreshAccessToken(true);
-      }, TOKEN_REFRESH_INTERVAL);
-    }
+    // Add response interceptor for handling 401s
+    const responseInterceptor = api.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
 
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  }, [isAuthenticated, refreshAccessToken]);
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
 
-  // Check auth status on mount
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+          if (isRefreshing) {
+            // Queue the request if a refresh is already in progress
+            try {
+              await new Promise((resolve, reject) => {
+                refreshQueue.push({ resolve, reject });
+              });
+              // Retry the original request after token refresh
+              return api(originalRequest);
+            } catch (error) {
+              return Promise.reject(error);
+            }
+          }
 
-  // Create authenticated fetch function
-  const authFetch = useCallback(async (url, options = {}) => {
-    const { token } = getStoredTokens();
-    
-    if (!token) {
-      throw new Error('No authentication token available');
-    }
+          isRefreshing = true;
 
-    // Prepare headers
-    const headers = {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...options.headers
-    };
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers
-      });
-
-      // If token is expired, try to refresh and retry the request
-      if (response.status === 401) {
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          headers.Authorization = `Bearer ${newToken}`;
-          return fetch(url, {
-            ...options,
-            headers
-          });
+          try {
+            const refreshed = await refreshAccessToken();
+            
+            if (refreshed) {
+              // Process all queued requests
+              refreshQueue.forEach(({ resolve }) => resolve());
+              refreshQueue = [];
+              // Retry the original request
+              return api(originalRequest);
+            } else {
+              // Reject all queued requests
+              refreshQueue.forEach(({ reject }) => reject());
+              refreshQueue = [];
+              await logout();
+              return Promise.reject(error);
+            }
+          } catch (refreshError) {
+            // Reject all queued requests
+            refreshQueue.forEach(({ reject }) => reject());
+            refreshQueue = [];
+            await logout();
+            return Promise.reject(refreshError);
+          } finally {
+            isRefreshing = false;
+          }
         }
-      }
 
-      return response;
-    } catch (error) {
-      console.error('Error making authenticated request:', error);
-      throw error;
-    }
-  }, [refreshAccessToken]);
+        return Promise.reject(error);
+      }
+    );
+
+    // Check auth status on mount
+    checkAuthStatus();
+
+    // Cleanup on unmount
+    return () => {
+      api.interceptors.response.eject(responseInterceptor);
+    };
+  }, [checkAuthStatus, logout, refreshAccessToken, api]);
 
   return {
     isAuthenticated,
     isLoading,
-    refreshAccessToken,
+    user: useContext(UserContext).user,
     logout,
-    authFetch
+    api,
   };
 };
 

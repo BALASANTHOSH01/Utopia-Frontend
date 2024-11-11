@@ -5,26 +5,21 @@ import PkgDetail from "../components/PackagesPage/PkgDetail";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { ClipLoader } from "react-spinners";
+import useAuth from "../services/useAuth";
 
 const PackageDetail = () => {
   const { id } = useParams();
-  const [packageId] = useState(id);
   const [packageData, setPackageData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { api } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `https://tic-himalayan-utopia-backend-v1.onrender.com/api/treks/${packageId}`
-        );
-        if (!response.ok) throw new Error("Failed to fetch package data");
-
-        const data = await response.json();
-        setPackageData(data);
-        // Scroll to top after data is fetched
+        const response = await api.get(`/api/treks/${id}`);
+        setPackageData(response.data.data); // Assuming the trek data is in `response.data.data`
         window.scrollTo(0, 0);
       } catch (error) {
         console.error("Error fetching package data:", error);
@@ -35,7 +30,7 @@ const PackageDetail = () => {
       }
     };
     fetchData();
-  }, [packageId]);
+  }, [id, api]);
 
   if (error) {
     return (
@@ -55,15 +50,15 @@ const PackageDetail = () => {
       
       {loading && (
         <>
-        <div className="h-[80vh] flex"></div>
-        <div className="fixed inset-0 bg-gray-100 bg-opacity-70 flex items-center justify-center z-[99]">
-          <ClipLoader size={60} color="#3498db" />
-        </div>
+          <div className="h-[80vh] flex"></div>
+          <div className="fixed inset-0 bg-gray-100 bg-opacity-70 flex items-center justify-center z-[99]">
+            <ClipLoader size={60} color="#3498db" />
+          </div>
         </>
       )}
 
       {!loading && packageData && (
-        <PkgDetail data={packageData?.data?.trek} />
+        <PkgDetail data={packageData?.trek} /> 
       )}
 
       <Footer />

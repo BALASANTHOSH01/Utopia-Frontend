@@ -10,7 +10,6 @@ import { IoIosStar } from "react-icons/io";
 import PackageDetailOverview from "./PackageDetailOverview";
 import PackageDetailHero from "./PackageDetailHero";
 import PackageDetailForm from "./PackageDetailForm";
-import Carousel from "./Carousel";
 import MapView from "../MapView";
 import PaymentPage from "../PaymentPage";
 

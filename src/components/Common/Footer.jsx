@@ -3,21 +3,25 @@ import logo from "../../assets/logo.png";
 import { FaLinkedin } from "react-icons/fa";
 import { FaSquareInstagram } from "react-icons/fa6";
 import { motion } from "framer-motion";
+import useAuth from "../../services/useAuth";
 
 const Footer = () => {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [error, setError] = useState(null);
+  const {api} = useAuth();
 
   const handleSubscribe = async () => {
     if (!email) return;
 
     try {
-      const response = await fetch("https://tic-himalayan-utopia-backend-v1.onrender.com/api/newsletter/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      // const response = await fetch("http://localhost:5000/api/newsletter/subscribe", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ email }),
+      // });
+
+      const response = await api.post("/api/newsletter/subscribe",{email});
       
       const data = await response.json();
       

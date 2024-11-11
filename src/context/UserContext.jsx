@@ -1,21 +1,25 @@
-import React, { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
 
-// Create a UserContext
 export const UserContext = createContext();
 
-// UserProvider component
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem("user");
+  
+  const savedUser = localStorage.getItem("user");
+const [user, setUser] = useState(() => {
+  try {
     return savedUser ? JSON.parse(savedUser) : null;
-  });
+  } catch (error) {
+    console.error("Error parsing user data from localStorage:", error);
+    return null; // Return null if parsing fails
+  }
+});
+
 
   const saveUser = (userData) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
-  // Clear user data
   const clearUser = () => {
     setUser(null);
     localStorage.removeItem("user");

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DateRangePicker from "../Common/DateRangePicker";
 import axios from "axios";
 import { motion } from "framer-motion";
+import useAuth from "../../services/useAuth";
 
 const HeroSection = ({ image, title, description, tagline }) => {
   const [formData, setFormData] = useState({
@@ -13,12 +14,13 @@ const HeroSection = ({ image, title, description, tagline }) => {
   const [treks, setTreks] = useState([]);
   const [filteredDestinations, setFilteredDestinations] = useState([]);
   const navigate = useNavigate();
+  const {api} = useAuth();
 
   useEffect(() => {
     const fetchTreks = async () => {
       try {
-        const response = await axios.get(
-          "https://tic-himalayan-utopia-backend-v1.onrender.com/api/treks/getall"
+        const response = await api.get(
+          "/api/treks/getall"
         );
         // console.log("Treks:", response.data.data);
         setTreks(response.data.data.treks);

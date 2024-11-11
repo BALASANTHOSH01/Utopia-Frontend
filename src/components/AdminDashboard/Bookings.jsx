@@ -1,22 +1,16 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import useAuth from "../../services/useAuth";
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
-  const token = localStorage.getItem("token");
-  const refreshToken = localStorage.getItem("refreshToken");
+  const { api} = useAuth();
+  
 
   useEffect(() => {
     const getBookings = async () => {
       try {
-        const response = await axios.get(
-          "https://tic-himalayan-utopia-backend-v1.onrender.com/api/bookings/getallbooking",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "refresh-token": refreshToken,
-            },
-          }
+        const response = await api.get(
+          "/api/bookings/getallbooking"
         );
         setBookings(response?.data?.data?.bookings);
       } catch (error) {

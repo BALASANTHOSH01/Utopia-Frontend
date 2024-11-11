@@ -14,7 +14,7 @@
     "@stripe/stripe-js": "^4.9.0",
     "@studio-freight/react-lenis": "^0.0.47",
     "axios": "^1.7.7",
-    "framer-motion": "^11.11.1",
+    "framer-motion": "^11.11.11",
     "google-map-react": "^2.2.1",
     "imagekit": "^5.2.0",
     "js-cookie": "^3.0.5",

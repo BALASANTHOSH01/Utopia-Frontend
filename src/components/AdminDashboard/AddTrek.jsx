@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { IoAdd, IoRemove } from "react-icons/io5";
 import InputField from "../Common/InputField";
 import { LuPencil } from "react-icons/lu";
@@ -11,6 +10,7 @@ import { toast } from "sonner";
 import { HiUpload } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import SelectLoation from "./SelectLocation";
+import useAuth from "../../services/useAuth";
 
 const AddTrek = () => {
   const imagekit = new ImageKit({
@@ -21,6 +21,7 @@ const AddTrek = () => {
     authenticationEndpoint: "http://localhost:5000/imagekit",
   });
   const nav = useNavigate();
+  const {api} = useAuth();
   const [trekDetails, setTrekDetails] = useState({
     name: "",
     guests: 1,
@@ -118,16 +119,9 @@ const AddTrek = () => {
     e.preventDefault();
 
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/treks/",
-        trekDetails,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const response = await api.post(
+        "/api/treks/",
+        trekDetails
       );
       console.log("Trek added successfully:", response.data);
       setTrekDetails({

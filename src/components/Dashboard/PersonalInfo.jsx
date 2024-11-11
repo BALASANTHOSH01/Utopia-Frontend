@@ -68,7 +68,7 @@ const PersonalInfo = (props) => {
   const handleEmailUpdate = async () => {
     try {
       const response = await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/updateEmail",
+        "http://localhost:5000/api/auth/updateEmail",
         {
           method: "POST",
           headers: {
@@ -108,7 +108,7 @@ const PersonalInfo = (props) => {
     const otpCode = otp.join("");
     try {
       const response = await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/verifyEmailUp",
+        "http://localhost:5000/api/auth/verifyEmailUp",
         {
           method: "POST",
           headers: {

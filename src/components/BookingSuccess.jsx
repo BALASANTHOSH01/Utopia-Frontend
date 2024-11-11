@@ -32,8 +32,8 @@ const BookingSuccess = () => {
     doc.setTextColor(primaryColor).setFontSize(18).text('Invoice Details', 105, 70, { align: 'center' });
     doc.setFontSize(12).setTextColor('#000');
     doc.text(`Booking ID: ${data?.bookingData?.data?.booking?._id}`, 20, 80);
-    doc.text(`Customer Name: ${userData?.user?.name}`, 20, 90);
-    doc.text(`Customer Email: ${userData?.user?.email}`, 20, 100); 
+    doc.text(`Customer Name: ${userData?.name}`, 20, 90);
+    doc.text(`Customer Email: ${userData?.email}`, 20, 100); 
     doc.text(`Amount Paid: INR ${data?.bookingData?.data?.booking?.amount}`, 20, 110);
     doc.text(`Payment Date: ${new Date().toDateString()}`, 20, 120);
   
@@ -57,7 +57,7 @@ const BookingSuccess = () => {
     doc.setFontSize(10).setTextColor('#999').text('Himalayan Utopia | www.himalayanutopia.com', 105, 180, { align: 'center' });
   
     // Finalize PDF
-    doc.save('invoice.pdf');
+    doc.save('bookinginvoice.pdf');
   };
   
 

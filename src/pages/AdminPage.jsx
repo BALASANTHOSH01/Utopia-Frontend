@@ -1,4 +1,8 @@
 import React, { useState, Suspense } from "react";
+import { FaLongArrowAltUp as ArrowIcon } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { MdOutlineKeyboardArrowUp as UpArrowIcon } from "react-icons/md";
+
 const AddTrek = React.lazy(() =>
   import("../components/AdminDashboard/AddTrek")
 );
@@ -16,6 +20,10 @@ import Footer from "../components/Common/Footer";
 
 const AdminPage = () => {
   const [activeComponent, setActiveComponent] = useState("EditTrek");
+
+  const handleScrollTop = () =>{
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
 
   const renderComponent = () => {
     switch (activeComponent) {
@@ -93,6 +101,12 @@ const AdminPage = () => {
                 {renderComponent()}
               </Suspense>
             </main>
+
+             {/* scroll top */}
+      <motion.div whileTap={{scale:0.6}} className="p-2 border border-gray-300 rounded-full max-sm:block text-[30px] fixed bottom-4 right-5 z-[999999] cursor-pointer bg-white" onClick={()=>handleScrollTop()}>
+        <UpArrowIcon/>
+      </motion.div>
+
           </div>
         </div>
         <Footer />

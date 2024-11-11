@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import useAuth from "../../services/useAuth";
 import { toast } from "sonner";
 import EditTrek from "./EditTrek";
 
@@ -12,6 +12,7 @@ const ManageTreks = () => {
   const [editTrekId, setEditTrekId] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const navigate = useNavigate();
+  const {api} = useAuth();
 
   if(showEditModal){
     document.body.style.overflowY = "hidden";
@@ -22,12 +23,8 @@ const ManageTreks = () => {
   useEffect(() => {
     const fetchTreks = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("/treks/getall", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+    
+        const response = await api.get("/api/treks/getall");
         setTreks(response.data.data.treks);
         console.log("Treks fetched:", response.data.data);
       } catch (error) {
@@ -40,16 +37,10 @@ const ManageTreks = () => {
 
   const handleDelete = async (trekId) => {
     try {
-      // const token = Cookies.get("authToken");
-      const token = localStorage.getItem("token");
+      
 
-      await axios.delete(
-        `https://tic-himalayan-utopia-backend-v1.onrender.com/api/treks/${trekId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      await api.delete(
+        `http://localhost:5000/api/treks/${trekId}`
       );
       setTreks((prevTreks) => prevTreks.filter((trek) => trek._id !== trekId));
       toast.success("Trek deleted successfully.");
@@ -163,11 +154,11 @@ const ManageTreks = () => {
         </div>
       )}
 
+{/* Edit Model */}
       {showEditModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white flex flex-col rounded-[10px] no-scrollbar p-6 w-11/12 sm:w-8/12 lg:w-1/2 h-3/4 overflow-scroll">
+          <div className="bg-white flex flex-col rounded-[10px] no-scrollbar p-6 w-11/12 sm:w-10/12 lg:w-1/2 h-3/4 overflow-scroll">
             <EditTrek id={editTrekId} setShowEditModal={setShowEditModal} />
-              
           </div>
         </div>
       )}

@@ -1,34 +1,34 @@
-import React, { useState, useEffect, useContext } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import { IoPerson } from "react-icons/io5";
 import { CiSearch } from "react-icons/ci";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { UserContext } from "../../context/UserContext";
 import { toast } from "sonner";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import HoverDropdown from "./HoverDropdown";
+import useAuth from "../../services/useAuth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const location = useLocation();
-  const { user, clearUser } = useContext(UserContext);
-  // console.log(user);
+  const navigate = useNavigate();
+  const [user, setUser] = useState(localStorage.getItem('user'));
+  const {  logout, isAuthenticated } = useAuth();
+  
   const [treks, setTreks] = useState([]);
   const [filteredDestinations, setFilteredDestinations] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const role = JSON.parse(localStorage.getItem("user"))?.user?.role;
-  // console.log(role)
+
+  // Safely access user role
+  const role = user?.role || 'user';
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const toggleDropdown = () => {
-    
     setShowDropdown(!showDropdown);
   };
 
@@ -36,18 +36,9 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/logout",
-        {
-          method: "POST",
-        }
-      );
+      await logout();
       toast.success("Logout successful");
-      clearUser();
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
-      window.location.href = "/";
+      navigate("/");
     } catch (error) {
       toast.error("Logout failed");
       console.error("Logout failed", error);
@@ -58,12 +49,12 @@ const Navbar = () => {
     const fetchTreks = async () => {
       try {
         const response = await axios.get(
-          "https://tic-himalayan-utopia-backend-v1.onrender.com/api/treks/getall"
+          `${import.meta.env.VITE_LOCAL_API_URL}/api/treks/getall`
         );
         setTreks(response.data.data.treks);
-        // console.log(treks);
       } catch (error) {
         console.error("Error fetching treks:", error);
+        setTreks([]); // Set empty array on error
       }
     };
     fetchTreks();
@@ -83,22 +74,37 @@ const Navbar = () => {
 
     debounce(() => {
       const filtered = treks.filter((trek) =>
-        trek?.name.toLowerCase().includes(value.toLowerCase())
+        trek?.name?.toLowerCase().includes(value.toLowerCase())
       );
-      setFilteredDestinations(filtered.map((trek) => trek?.name));
+      setFilteredDestinations(filtered.map((trek) => trek?.name).filter(Boolean));
     }, 500)();
   };
 
-  const handleClick = (e) => {
-    // e.preventDefault();
-
-    const destination = searchTerm;
+  const handleClick = () => {
     const queryParams = new URLSearchParams({
-      destination,
+      destination: searchTerm,
     }).toString();
 
     navigate(`/packages?${queryParams}`);
     setSearchTerm("");
+  };
+
+  const getDashboardLink = () => {
+    if (!isAuthenticated) return "/login";
+    return role === "admin" ? "/admin" : "/dashboard";
+  };
+
+  // Mobile menu user display
+  const getMobileUserDisplay = () => {
+    if (!isAuthenticated) {
+      return <IoPerson className="text-white text-2xl mr-4" />;
+    }
+    return (
+      <div className="flex items-center text-white">
+        <IoPerson className="text-2xl mr-2" />
+        <span className="mr-4">{user?.name || 'User'}</span>
+      </div>
+    );
   };
 
   return (
@@ -151,36 +157,30 @@ const Navbar = () => {
               onChange={handleDestinationChange}
               className="popp focus:outline-none w-[250px] placeholder:text-white font-light text-md text-white bg-transparent px-2"
             />
-            <ul className="absolute w-full top-8 left-0 mt-2 bg-white/80 backdrop-blur-sm text-black rounded-[10px] overflow-y-auto max-h-40">
-              {searchTerm.length > 0 &&
-                filteredDestinations.map((dest, index) => (
+            {searchTerm.length > 0 && filteredDestinations.length > 0 && (
+              <ul className="absolute w-full top-8 left-0 mt-2 bg-white/80 backdrop-blur-sm text-black rounded-[10px] overflow-y-auto max-h-40">
+                {filteredDestinations.map((dest, index) => (
                   <li
                     key={index}
                     className="cursor-pointer border px-4 py-2 hover:bg-gray-200"
-                    onClick={() => {
-                      // setFilteredDestinations([]);
-                      handleClick();
-                    }}
+                    onClick={handleClick}
                   >
                     {dest}
                   </li>
                 ))}
-            </ul>
+              </ul>
+            )}
           </div>
         </div>
 
         <div className="hidden lg:flex items-center relative">
-          {/*  */}
           <HoverDropdown />
+          {/* <span className="mr-4 text-white">{user?.name || 'User'}</span> */}
         </div>
 
         <div className="lg:hidden flex items-center">
-          <a
-            href={
-              user ? (role === "admin" ? "/admin" : "/dashboard") : "/signup"
-            }
-          >
-            <IoPerson className="text-white text-2xl mr-4" />
+          <a href={getDashboardLink()}>
+            {getMobileUserDisplay()}
           </a>
           <button onClick={toggleMenu}>
             {isMenuOpen ? (
@@ -202,6 +202,7 @@ const Navbar = () => {
           <button onClick={toggleMenu} className="absolute top-10 right-10">
             <FaTimes className="text-white text-2xl" />
           </button>
+          {/* Navigation Links */}
           <a
             href="/"
             onClick={toggleMenu}
@@ -211,33 +212,39 @@ const Navbar = () => {
           >
             Home
           </a>
+
           <a
             href="/packages"
             onClick={toggleMenu}
             className={`text-lg popp transition-all py-2 px-6 rounded-lg ${
-              isActive("/packages") ? "text-[#51acf2]" : "hover:text-[#51acf2]"
+              isActive("/") ? "text-[#51acf2]" : "hover:text-[#51acf2]"
             }`}
           >
             Packages
           </a>
+
           <a
             href="/blogs"
             onClick={toggleMenu}
             className={`text-lg popp transition-all py-2 px-6 rounded-lg ${
-              isActive("/blogs") ? "text-[#51acf2]" : "hover:text-[#51acf2]"
+              isActive("/") ? "text-[#51acf2]" : "hover:text-[#51acf2]"
             }`}
           >
             Blogs
-          </a> 
+          </a>
+
           <a
             href="/custom-trek"
             onClick={toggleMenu}
-            className={`text-lg popp transition-all whitespace-nowrap py-2 px-6 rounded-lg ${
-              isActive("/custom-trek") ? "text-[#51acf2]" : "hover:text-[#51acf2]"
+            className={`text-lg popp transition-all py-2 px-6 rounded-lg ${
+              isActive("/") ? "text-[#51acf2]" : "hover:text-[#51acf2]"
             }`}
           >
             Custom Trek
-          </a> 
+          </a>
+          
+          
+          {/* Search Bar */}
           <div className="relative flex items-center w-3/4 justify-start rounded-[15px] px-2 py-2 gap-1 border border-white/40">
             <CiSearch className="text-xl" />
             <input
@@ -247,33 +254,65 @@ const Navbar = () => {
               onChange={handleDestinationChange}
               className="popp focus:outline-none w-[250px] placeholder:text-white font-light text-md text-white bg-transparent px-2"
             />
-            <ul className="absolute w-full top-8 left-0 mt-2 bg-white/80 backdrop-blur-sm text-black rounded-[10px] overflow-y-auto max-h-40">
-              {filteredDestinations.map((dest, index) => (
-                <li
-                  key={index}
-                  className="cursor-pointer border px-4 py-2 hover:bg-gray-200"
-                  onClick={() => {
-                    // setFilteredDestinations([]);
-                    handleClick();
-                  }}
-                >
-                  {dest}
-                </li>
-              ))}
-            </ul>
+            {searchTerm.length > 0 && filteredDestinations.length > 0 && (
+              <ul className="absolute w-full top-8 left-0 mt-2 bg-white/80 backdrop-blur-sm text-black rounded-[10px] overflow-y-auto max-h-40">
+                {filteredDestinations.map((dest, index) => (
+                  <li
+                    key={index}
+                    className="cursor-pointer border px-4 py-2 hover:bg-gray-200"
+                    onClick={() => {
+                      handleClick();
+                      toggleMenu();
+                    }}
+                  >
+                    {dest}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-          {user && (
-            <div className="flex w-3/4 justify-center items-center gap-5 ">
-              <button className="flex items-center border px-5 py-2 gap-3 text-white rounded-xl"
-                onClick={() => (window.location.href = role === "admin" ? "/admin" : "/dashboard")}
+
+          {/* Authentication Buttons */}
+          {isAuthenticated ? (
+            <div className="flex w-3/4 justify-center items-center gap-5">
+              <button 
+                className="flex items-center border px-5 py-2 gap-3 text-white rounded-xl"
+                onClick={() => {
+                  navigate(getDashboardLink());
+                  toggleMenu();
+                }}
               >
                 Dashboard
               </button>
               <button
                 className="flex items-center gap-3 border px-5 py-2 text-white rounded-xl"
-                onClick={handleLogout}
+                onClick={() => {
+                  handleLogout();
+                  toggleMenu();
+                }}
               >
                 Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex w-3/4 justify-center items-center gap-5">
+              <button 
+                className="flex items-center border px-5 py-2 gap-3 text-white rounded-xl"
+                onClick={() => {
+                  navigate('/login');
+                  toggleMenu();
+                }}
+              >
+                Login
+              </button>
+              <button
+                className="flex items-center gap-3 border px-5 py-2 text-white rounded-xl"
+                onClick={() => {
+                  navigate('/signup');
+                  toggleMenu();
+                }}
+              >
+                Sign Up
               </button>
             </div>
           )}

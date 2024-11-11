@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import useAuth from "../../services/useAuth";
 import { IoAdd, IoRemove } from "react-icons/io5";
 import InputField from "../Common/InputField";
 import { LuPencil } from "react-icons/lu";
@@ -12,12 +12,12 @@ import { HiUpload } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import SelectLoation from "./SelectLocation";
 import { useParams } from "react-router-dom";
-import { FaLongArrowAltUp as ArrowIcon } from "react-icons/fa";
 
 const EditTrek = ({ id, setShowEditModal }) => {
 
   // document.body.style.overflowY = "hidden";
   const nav = useNavigate();
+  const {api} = useAuth();
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
   const refreshToken = localStorage.getItem("refreshToken");
@@ -69,7 +69,7 @@ const EditTrek = ({ id, setShowEditModal }) => {
 
       setLoading(true);
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `http://localhost:5000/api/treks/${id}`,
           {
             headers: {
@@ -270,7 +270,7 @@ const EditTrek = ({ id, setShowEditModal }) => {
         console.log("updatePayload value: "+value);
       });
 
-      const response = await axios.patch(
+      const response = await api.patch(
         `http://localhost:5000/api/treks/${id}`,
         updatePayload,
         {
@@ -312,10 +312,7 @@ const EditTrek = ({ id, setShowEditModal }) => {
   return (
     <div className="w-full lg:p-4 mx-auto bg-white rounded-lg">
 
-      {/* scroll top */}
-      <div className="p-2 rounded-full border border-gray-500">
-        <ArrowIcon/>
-      </div>
+     
 
       <h2 className="text-2xl font-semibold mb-5">Edit Trek </h2>
       <div className="space-y-4">

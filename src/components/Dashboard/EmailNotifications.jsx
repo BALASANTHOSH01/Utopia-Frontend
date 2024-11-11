@@ -8,7 +8,7 @@ const EmailNotifications = () => {
   const handleUnsubscribe = async () => {
     try {
       const res = await axios.post(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/newsletter/unsubscribe",
+        "http://localhost:5000/api/newsletter/unsubscribe",
         { email }
       );
       toast.success("Unsubscribed successfully");

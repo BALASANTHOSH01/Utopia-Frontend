@@ -12,6 +12,7 @@ import { useLocation } from "react-router-dom";
 import MapView from "../MapView";
 import { ClipLoader } from "react-spinners";
 import MultipleMapLocations from "./MultipleMapLocations";
+import useAuth from "../../services/useAuth";
 
 const Packages = () => {
   const location = useLocation();
@@ -31,6 +32,7 @@ const Packages = () => {
     indexOfLastPackage
   );
   const [mappackages, setMapPackages] = useState([]);
+  const {api} = useAuth();
 
   const totalPages = Math.ceil(filteredPackages.length / itemsPerPage);
 
@@ -43,8 +45,8 @@ const Packages = () => {
     const fetchPackages = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          "https://tic-himalayan-utopia-backend-v1.onrender.com/api/treks/getall"
+        const response = await api.get(
+          "/api/treks/getall"
         );
         // setLoading(false);
         setPackages(response.data.data.treks);

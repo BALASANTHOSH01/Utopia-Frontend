@@ -112,16 +112,16 @@ const Accordion = ({ clientSecret, handleSuccess, customerName, setCustomerName,
       <p className="text-gray-700 text-sm">
         Do not refresh the page while processing the payment.
       </p>
-      <AccordionItem
+      {/* <AccordionItem
         title="1. Customer Details"
         index={1}
         expanded={expanded}
         toggleAccordion={toggleAccordion}
       >
         <CustomerForm customerName={customerName} setCustomerName={setCustomerName} customerEmail={customerEmail} setCustomerEmail={setCustomerEmail}/>
-      </AccordionItem>
+      </AccordionItem> */}
       <AccordionItem
-        title="2. Cancellation Policy"
+        title="1. Cancellation Policy"
         index={3}
         expanded={expanded}
         toggleAccordion={toggleAccordion}
@@ -146,8 +146,10 @@ const Accordion = ({ clientSecret, handleSuccess, customerName, setCustomerName,
           .
         </p>
       </AccordionItem>
+
+
       <AccordionItem
-        title="3. Payment Information"
+        title="2. Payment Information"
         index={2}
         expanded={expanded}
         toggleAccordion={toggleAccordion}

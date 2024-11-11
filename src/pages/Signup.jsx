@@ -29,48 +29,36 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password || !username || password !== confirmPassword) {
-      toast.error("Please fill out all fields correctly.");
-      // setError("Please fill out all fields correctly.");
-      return;
-    }
-
+    
     try {
-      const response = await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/signup",
+      if (!email || !password || !username || password !== confirmPassword) {
+        toast.error("Please fill out all fields correctly.");
+        return;
+      }
+  
+      const response = await axios.post(
+        `${import.meta.env.VITE_LOCAL_API_URL}/api/auth/signup`,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: username,
-            email: email,
-            password: password,
-            confirmPassword: confirmPassword,
-            role: "user",
-          }),
+          name: username,
+          email,
+          password,
+          confirmPassword,
+          role: "user",
         }
       );
-
-      const data = await response.json();
-      if (response.ok) {
-        setUser(data);
-        setTempUser(data.tempUserId);
+  
+      if (response.data?.status === 'success') {
+        setTempUser(response.data.tempUserId);
         setShowOTP(true);
-        setError("");
-        toast.success(
-          "Signup successful! Please check your email for the OTP."
-        );
-      } else {
-        toast.error(data.message || "An error occurred during signup.");
-        // setError(data.message || "An error occurred during signup.");
+        toast.success("Please check your email for the OTP.");
       }
     } catch (error) {
-      toast.error("Network error. Please try again.");
-      // setError("Network error. Please try again.");
+      toast.error(error.response?.data?.message || "Signup failed");
     }
   };
+  
+
+
   // console.log(user);
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -100,34 +88,27 @@ const Signup = () => {
 
   const handleOtpSubmit = async () => {
     const otpCode = otp.join("");
-    // Add your OTP verification logic here
-    // For example, sending otpCode to your API for verification
-    // Assuming you have an API endpoint for OTP verification
+    
     try {
-      const response = await fetch(
-        "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/verifyOTP",
+      if (otpCode.length !== 6) {
+        toast.error("Please enter a complete OTP");
+        return;
+      }
+  
+      const response = await axios.post(
+        `${import.meta.env.VITE_LOCAL_API_URL}/api/auth/verify-otp`,
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            otp: otpCode,
-            tempUserId: tempUser,
-          }),
+          otp: otpCode,
+          tempUserId: tempUser,
         }
       );
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("OTP verified successfully! Login to continue!");
-        saveUser(data);
+  
+      if (response.data?.status === 'success') {
+        toast.success("Account verified! Please login to continue.");
         navigate("/login");
-      } else {
-        toast.error(data.message || "OTP verification failed.");
       }
     } catch (error) {
-      toast.error("Network error. Please try again.");
+      toast.error(error.response?.data?.message || "OTP verification failed");
     }
   };
 
@@ -155,8 +136,9 @@ const Signup = () => {
   }, [navigate]);
 
   const handleGoogleLogin = async () => {
-    window.location.href = "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/google";
+    window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;
   };
+
   return (
     <>
       {/* Signup Form */}

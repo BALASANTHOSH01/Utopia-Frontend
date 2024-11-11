@@ -1,36 +1,34 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { IoPerson } from 'react-icons/io5';
 import { toast } from 'sonner';
 import { UserContext } from '../../context/UserContext';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../../services/useAuth';
 
 const HoverDropdown = () => {
   const [isDropdownVisible, setDropdownVisible] = useState(false);
   const { user, clearUser } = useContext(UserContext);
-  const role = JSON.parse(localStorage.getItem("user"))?.user?.role;
-
+  const role = user?.role;
   const navigate = useNavigate();
+  const {api} = useAuth();
+
+  useEffect(() => {
+    if (!user) {
+      console.warn("User data is missing, check UserContext for correct setup.");
+    }
+  }, [user]);
 
   const showDropdown = () => setDropdownVisible(true);
-
   const hideDropdown = () => setDropdownVisible(false);
 
   const handleLogout = async () => {
     try {
-      await fetch("https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/logout", {
-        method: "POST",
-      });
+      await api.post("/api/auth/logout");
+      // await fetch("http://localhost:5000/api/auth/logout", { method: "POST" });
       toast.success("Logout successful");
       clearUser();
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
 
-      if (user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/login");
     } catch (error) {
       toast.error("Logout failed");
       console.error("Logout failed", error);
@@ -44,10 +42,11 @@ const HoverDropdown = () => {
           onClick={() => navigate("/signup")}
           style={{
             padding: '10px',
-            // backgroundColor: '#007bff',
             color: 'white',
             cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '0.5rem'
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
           }}
         >
           <IoPerson /> Sign In
@@ -56,9 +55,9 @@ const HoverDropdown = () => {
         <div
           onMouseEnter={showDropdown}
           onMouseLeave={hideDropdown}
+          onClick={() => setDropdownVisible(!isDropdownVisible)} // Toggle dropdown on click for testing
           style={{
             padding: '10px',
-            // backgroundColor: '#007bff',
             color: 'white',
             cursor: 'pointer',
             display: 'flex',
@@ -66,13 +65,10 @@ const HoverDropdown = () => {
             gap: '0.5rem',
           }}
         >
-          <IoPerson /> {user?.user?.name}
+          <IoPerson /> {user.name || 'User'}
 
-          {/* Dropdown Menu */}
           {isDropdownVisible && (
             <div
-              onMouseEnter={showDropdown}
-              onMouseLeave={hideDropdown}
               style={{
                 position: 'absolute',
                 top: '100%',
@@ -84,13 +80,8 @@ const HoverDropdown = () => {
                 zIndex: 1,
               }}
             >
-                
               <div
-                onClick={
-                    role === "admin"
-                        ? () => navigate("/admin")
-                        : () => navigate("/dashboard")
-                }
+                onClick={() => navigate(role === "admin" ? "/admin" : "/dashboard")}
                 style={{ padding: '8px', cursor: 'pointer', color: 'black' }}
               >
                 {role === "admin" ? "Admin Dashboard" : "User Dashboard"}

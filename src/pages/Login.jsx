@@ -1,125 +1,120 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import lock from "../assets/Lock.png";
 import mail from "../assets/Mail.png";
 import logo from "../assets/logo.png";
 import { Toaster, toast } from "sonner";
-import axios from "axios";
+import useAuth from "../services/useAuth.js";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const {api} = useAuth();
 
+  // Handle Google OAuth redirect
+  // Handle OAuth callback
   useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const accessToken = queryParams.get("accessToken");
-    const refreshToken = queryParams.get("refreshToken");
-    const user = queryParams.get("user");
+    const handleOAuthCallback = async () => {
+      const queryParams = new URLSearchParams(window.location.search);
+      const token = queryParams.get("token");
+      const userData = queryParams.get("user");
 
-    console.log("Access Token:", accessToken);
-    console.log("Refresh Token:", refreshToken);
+      if (token && userData) {
+        try {
+          const user = JSON.parse(decodeURIComponent(userData));
+          localStorage.setItem("accessToken", token);
+          localStorage.setItem("user", JSON.stringify(user));
 
-    if (user) {
-      const decodedUser = JSON.parse(decodeURIComponent(user));
-      console.log("User Data:", decodedUser);
+          // Clear URL parameters
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
 
-      const { id, googleId, name, email, role } = decodedUser;
-      const loginData = {
-        status: "success",
-        accessToken,
-        refreshToken,
-        user: {
-          id,
-          googleId,
-          name,
-          email,
-          role,
-        },
-      };
-
-      if (accessToken && refreshToken) {
-        // Wrap in a Promise to simulate delay
-        new Promise((resolve) => {
-          setTimeout(() => {
-            localStorage.setItem("token", accessToken);
-            localStorage.setItem("refreshToken", refreshToken);
-            localStorage.setItem("user", JSON.stringify(loginData));
-            resolve();
-          }, 1000); // 1-second delay
-        })
-          .then(() => {
-            console.log("Stored tokens and user info in localStorage successfully.");
-            toast.success("Login successful! Redirecting...");
-            navigate("/");
-          })
-          .catch((error) => {
-            console.error("Error storing login data:", error);
-            toast.error("Failed to store login data.");
-          });
+          toast.success("Login successful! Redirecting...");
+          navigate("/");
+        } catch (error) {
+          console.error("OAuth callback error:", error);
+          toast.error("Failed to process login");
+        }
       }
-    } else {
-      // console.error("Missing token or user information, redirecting to login...");
-      // toast.error("Missing user information, redirecting to login...");
-      navigate("/login");
-    }
+    };
+
+    handleOAuthCallback();
   }, [navigate]);
-  
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!email || !password) {
-      toast.error("Please fill out both fields.");
-      return;
-    }
-
-    await toast.promise(
-      axios
-        .post(
-          "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/login",
-          {
-            email,
-            password,
-          }
-        )
-        .then((response) => {
-          const data = response.data;
-          const token = data.accessToken;
-          const refreshToken = data.refreshToken;
-
-          if (token) {
-            localStorage.setItem("token", token);
-            localStorage.setItem("refreshToken", refreshToken);
-          }
-          localStorage.setItem("user", JSON.stringify(data));
-
-          setTimeout(() => {
-            window.location.href = "/";
-          }, 1500);
-        }),
-      {
-        loading: "Logging in...",
-        success: "Login successful! Redirecting...",
-        error: "Login failed. Please check your credentials.",
-      }
-    );
+  // Email validation
+  const isValidEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (!email || !password) {
+        toast.error("Please fill out all fields");
+        return;
+      }
+
+      const response = await api.post(
+        `/api/auth/login`,
+        { email, password },
+        { withCredentials: true }
+      ); 
+
+      if (response.data?.status === "success") {
+        // Store user as JSON string in localStorage
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        // const authHeader = response.headers.get("Authorization");
+        // if (authHeader && authHeader.startsWith("Bearer ")) {
+        //   const accessToken = authHeader.split(" ")[1]; 
+        //   localStorage.setItem("accessToken", accessToken);
+        // }
+        
+        // const acesst = localStorage.getItem("accessToken");
+        // console.log("accesstoken : " + acesst);
+        
+        // Object.values(response.data.user).map((data) => {
+        //   console.log("data : " + data);
+        // });
+
+        console.log("userName : " + response.data.user.name);
+
+        toast.success("Login successful! Redirecting...");
+        navigate("/");
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Login failed";
+      toast.error(errorMessage);
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleGoogleLogin = async () => {
-    window.location.href =
-      "https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/google";
-    // axios.get("https://tic-himalayan-utopia-backend-v1.onrender.com/api/auth/google").then((response) => {
-    //   console.log(response);
-    // }
-    // );
+  // Handle Google login
+  const handleGoogleLogin = () => {
+    try {
+      window.location.href = import.meta.env.VITE_API_URL;
+    } catch (error) {
+      console.error("Google login error:", error);
+      toast.error("Failed to initiate Google login");
+    }
   };
 
   return (
