@@ -8,6 +8,8 @@ export const UserProvider = ({ children }) => {
 const [user, setUser] = useState(() => {
   try {
     console.log("saved USer : "+savedUser);
+    const API_URL = import.meta.env.VITE_LOCAL_API_URL ;
+  console.log("api-url : ");
     return savedUser ? JSON.parse(savedUser) : null;
   } catch (error) {
     console.error("Error parsing user data from localStorage:", error);

@@ -13,6 +13,7 @@ const useAuth = () => {
   const refreshCooldown = useRef(false);
 
   const API_URL = import.meta.env.VITE_API_URL ;
+  // console.log("api-url : "+API_URL);
 
   // Memoize API instance
   const api = useMemo(() => {

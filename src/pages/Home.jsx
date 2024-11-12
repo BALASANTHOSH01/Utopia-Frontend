@@ -10,6 +10,7 @@ import Footer from '../components/Common/Footer';
 import hero1 from "../assets/hero1.jpeg";
 
 const Home = () => {
+  
   return (
     <>
       <div className="w-full flex items-center flex-col">
