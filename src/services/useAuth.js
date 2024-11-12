@@ -12,10 +12,10 @@ const useAuth = () => {
   const isRefreshingToken = useRef(false);
   const refreshCooldown = useRef(false);
 
-  const API_URL = import.meta.env.VITE_LOCAL_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL ;
 
   // Memoize API instance
-  const api = useMemo(() => { 
+  const api = useMemo(() => {
     return axios.create({
       baseURL: API_URL,
       withCredentials: true, // Important for sending/receiving cookies
