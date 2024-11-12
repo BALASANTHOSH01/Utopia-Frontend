@@ -28,6 +28,7 @@ const Login = () => {
         try {
           const user = JSON.parse(decodeURIComponent(userData));
           localStorage.setItem("user", JSON.stringify(user));
+          console.log("userData : "+user);
 
           // Clear URL parameters
           window.history.replaceState(
@@ -69,6 +70,8 @@ const Login = () => {
       if (response.data?.status === "success") {
         // Store user as JSON string in localStorage
         localStorage.setItem("user", JSON.stringify(response.data.user));
+        
+        console.log("response.data.user : "+JSON.stringify(response.data.user));
 
         // const authHeader = response.headers.get("Authorization");
         // if (authHeader && authHeader.startsWith("Bearer ")) {
