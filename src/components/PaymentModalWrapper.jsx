@@ -7,7 +7,7 @@ import {
   CardElement,
 } from "@stripe/react-stripe-js";
 
-const stripePromise = loadStripe("pk_test_51O4cemSGqAAkWq5bWRtNgjVlx37uj30Ge6Wj9PavSOLAjXmsM6M7WVim5IgGTO5IRgzVwnO7kw5Tzp91ld5m29I700ziDKjzdv");
+const stripePromise = loadStripe(`${import.meta.env.VITE_STRIPE_PUBLIC_KEY}`);
 
 const PaymentModal = ({ clientSecret, onSuccess, onClose }) => {
   const stripe = useStripe();

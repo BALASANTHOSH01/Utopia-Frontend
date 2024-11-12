@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
+import useAuth from "../../services/useAuth";
 
 const EmailNotifications = () => {
   const email = JSON.parse(localStorage.getItem("user"))?.user?.email;
+  const {api} = useAuth();
 
   const handleUnsubscribe = async () => {
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/newsletter/unsubscribe",
+      const response = await api.post(
+        "/api/newsletter/unsubscribe",
         { email }
       );
       toast.success("Unsubscribed successfully");
@@ -24,7 +26,7 @@ const EmailNotifications = () => {
   return (
     <div className="popp">
       <h1 className="text-xl font-bold">Email Notifications</h1>
-      <label for="email">Email </label>
+      <label htmlFor="email">Email </label>
       <input
         type="email"
         id="email"

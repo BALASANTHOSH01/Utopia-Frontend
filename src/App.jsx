@@ -18,34 +18,10 @@ import CustomTrek from "./pages/CustomTrek.jsx";
 import Blogs from "./pages/Blogs.jsx";
 import EditTrek from "./components/AdminDashboard/EditTrek.jsx";
 
-axios.defaults.baseURL =
-  "https://tic-himalayan-utopia-backend-v1.onrender.com/api";
+axios.defaults.baseURL = `${import.meta.env.VITE_API_URL}/api`;
 
 const App = () => {
-  const user = localStorage.getItem("user");
-  const { refreshAccessToken } = useAuth();
-  const token = localStorage.getItem("token");
-  // refreshAccessToken();
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const accessToken = localStorage.getItem("token");
-      if (accessToken) {
-        const tokenExpiration =
-          JSON.parse(atob(accessToken.split(".")[1])).exp * 1000;
-        const currentTime = Date.now();
-        console.log("Token Expiration:", tokenExpiration);
-        console.log("Current Time:", currentTime);
-
-        if (tokenExpiration < currentTime + 5 * 60 * 1000) {
-          refreshAccessToken();
-        }
-      }
-    }, 1 * 60 * 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
+  const {user} = useAuth();
 
   return (
     <>

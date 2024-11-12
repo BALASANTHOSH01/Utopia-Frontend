@@ -40,7 +40,7 @@ const ManageTreks = () => {
       
 
       await api.delete(
-        `http://localhost:5000/api/treks/${trekId}`
+        `/api/treks/${trekId}`
       );
       setTreks((prevTreks) => prevTreks.filter((trek) => trek._id !== trekId));
       toast.success("Trek deleted successfully.");

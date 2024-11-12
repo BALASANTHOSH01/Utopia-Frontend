@@ -3,11 +3,12 @@ import { toast } from "sonner";
 import Modal from "./Modal";
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import lock from "../../assets/Lock.png";
+import useAuth from "../../services/useAuth";
 
 const PersonalInfo = (props) => {
   const { user } = props;
   const data = user && user.user;
-  
+  const {api} = useAuth();
 
   const [userInfo, setUserInfo] = useState({
     name: data?.name,
@@ -33,8 +34,7 @@ const PersonalInfo = (props) => {
   const otpRefs = useRef([]);
   const [password, setPassword] = useState("");
   const [timer, setTimer] = useState(60);
-  const token = localStorage.getItem("token");
-  const refreshToken = localStorage.getItem("refreshToken");
+  
   const [showPassword, setShowPassword] = useState(false);
   const [tempUserId, setTempUserId] = useState("");
   const [showOTP, setShowOTP] = useState(false);
@@ -67,20 +67,12 @@ const PersonalInfo = (props) => {
 
   const handleEmailUpdate = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/updateEmail",
+      const response = await api.post(
+        "/api/auth/updateEmail",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "refresh-token": refreshToken,
-          },
-          body: JSON.stringify({
-            currentEmail: userInfo.email,
+          currentEmail: userInfo.email,
             newEmail,
             password,
-          }),
         }
       );
 
@@ -98,6 +90,7 @@ const PersonalInfo = (props) => {
       }
     } catch (error) {
       toast.error("Error updating email.");
+      console.log("Error : "+error.message);
     }
   };
   // console.log(tempUserId);
@@ -107,23 +100,14 @@ const PersonalInfo = (props) => {
     console.log(tempUserId);
     const otpCode = otp.join("");
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/auth/verifyEmailUp",
+      const response = await api.post(
+        "/api/auth/verifyEmailUp",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "refresh-token": refreshToken,
-          },
-          body: JSON.stringify({
-            otp: otpCode,
-            userId: tempUserId,
-          }),
+          otp: otpCode,
+          userId: tempUserId,
         }
       );
 
-      
 
       const result = await response.json();
       if (response.ok) {
@@ -145,6 +129,7 @@ const PersonalInfo = (props) => {
       }
     } catch (error) {
       toast.error("Error verifying OTP.");
+      console.log("Error : "+error.message);
     }
   };
 

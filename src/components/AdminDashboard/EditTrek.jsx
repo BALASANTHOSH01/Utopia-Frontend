@@ -19,8 +19,7 @@ const EditTrek = ({ id, setShowEditModal }) => {
   const nav = useNavigate();
   const {api} = useAuth();
   const [loading, setLoading] = useState(false);
-  const token = localStorage.getItem("token");
-  const refreshToken = localStorage.getItem("refreshToken");
+ 
 
   // Initialize ImageKit with error handling
   const initializeImageKit = () => {
@@ -30,7 +29,7 @@ const EditTrek = ({ id, setShowEditModal }) => {
         privateKey: import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY,
         urlEndpoint: import.meta.env.VITE_IMAGEKIT_ENDPOINT,
         transformationPosition: "path",
-        authenticationEndpoint: "http://localhost:5000/imagekit",
+        // authenticationEndpoint: "http://localhost:5000/imagekit",
       });
     } catch (error) {
       console.error("Error initializing ImageKit:", error);
@@ -69,15 +68,7 @@ const EditTrek = ({ id, setShowEditModal }) => {
 
       setLoading(true);
       try {
-        const response = await api.get(
-          `http://localhost:5000/api/treks/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "refresh-token": refreshToken,
-            },
-          }
-        );
+        const response = await api.get(`/api/treks/${id}`);
 
         const trekData = response.data?.data?.trek;
         if (!trekData) throw new Error("Trek data not found");
@@ -271,15 +262,8 @@ const EditTrek = ({ id, setShowEditModal }) => {
       });
 
       const response = await api.patch(
-        `http://localhost:5000/api/treks/${id}`,
-        updatePayload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "refresh-token": refreshToken,
-          },
-        }
+        `/api/treks/${id}`,
+        updatePayload
       );
 
       if (!response.data) {
@@ -311,9 +295,6 @@ const EditTrek = ({ id, setShowEditModal }) => {
 
   return (
     <div className="w-full lg:p-4 mx-auto bg-white rounded-lg">
-
-     
-
       <h2 className="text-2xl font-semibold mb-5">Edit Trek </h2>
       <div className="space-y-4">
         {/* Trek Name */}

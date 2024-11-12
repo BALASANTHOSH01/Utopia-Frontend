@@ -8,7 +8,7 @@ import { CgProfile } from "react-icons/cg";
 import { UserContext } from "../context/UserContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import useAuth from "../services/useAuth";
 
 const Signup = () => {
   const { saveUser } = useContext(UserContext);
@@ -26,6 +26,7 @@ const Signup = () => {
   const [tempUser, setTempUser] = useState("");
   const otpRefs = useRef([]);
   const navigate = useNavigate();
+  const {api} = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,8 +37,8 @@ const Signup = () => {
         return;
       }
   
-      const response = await axios.post(
-        `${import.meta.env.VITE_LOCAL_API_URL}/api/auth/signup`,
+      const response = await api.post(
+        `/api/auth/signup`,
         {
           name: username,
           email,
@@ -95,8 +96,8 @@ const Signup = () => {
         return;
       }
   
-      const response = await axios.post(
-        `${import.meta.env.VITE_LOCAL_API_URL}/api/auth/verify-otp`,
+      const response = await api.post(
+        `/api/auth/verify-otp`,
         {
           otp: otpCode,
           tempUserId: tempUser,
@@ -105,7 +106,8 @@ const Signup = () => {
   
       if (response.data?.status === 'success') {
         toast.success("Account verified! Please login to continue.");
-        navigate("/login");
+        navigate("/dashboard");
+        // navigate("/login");
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "OTP verification failed");
@@ -125,15 +127,7 @@ const Signup = () => {
     return () => clearInterval(interval);
   }, [timer, showOTP]);
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const accessToken = queryParams.get("accessToken");
-
-    if (accessToken) {
-      localStorage.setItem("accessToken", accessToken);
-      navigate("/dashboard");
-    }
-  }, [navigate]);
+ 
 
   const handleGoogleLogin = async () => {
     window.location.href = `${import.meta.env.VITE_API_URL}/api/auth/google`;

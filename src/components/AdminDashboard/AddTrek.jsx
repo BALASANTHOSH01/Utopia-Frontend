@@ -18,7 +18,7 @@ const AddTrek = () => {
     privateKey: import.meta.env.VITE_IMAGEKIT_PRIVATE_KEY,
     urlEndpoint: import.meta.env.VITE_IMAGEKIT_ENDPOINT,
     transformationPosition: "path",
-    authenticationEndpoint: "http://localhost:5000/imagekit",
+    // authenticationEndpoint: "http://localhost:5000/imagekit",
   });
   const nav = useNavigate();
   const {api} = useAuth();

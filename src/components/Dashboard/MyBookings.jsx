@@ -1,24 +1,21 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
+import useAuth from "../../services/useAuth";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState(null);
-  const token = localStorage.getItem("token");
+
   const user = JSON.parse(localStorage.getItem("user"));
   const userId = user?.user?.id;
+  const {api} = useAuth();
   // console.log(token);
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         // console.log(token)
-        const response = await axios.get(
-          "http://localhost:5000/api/bookings/my-bookings",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const response = await api.get(
+          "/api/bookings/my-bookings",
         );
 
         setBookings(response.data.data.bookings);

@@ -21,13 +21,12 @@ const Login = () => {
   useEffect(() => {
     const handleOAuthCallback = async () => {
       const queryParams = new URLSearchParams(window.location.search);
-      const token = queryParams.get("token");
       const userData = queryParams.get("user");
+      // const success = params.get('success');
 
-      if (token && userData) {
+      if ( userData) {
         try {
           const user = JSON.parse(decodeURIComponent(userData));
-          localStorage.setItem("accessToken", token);
           localStorage.setItem("user", JSON.stringify(user));
 
           // Clear URL parameters
@@ -49,10 +48,6 @@ const Login = () => {
     handleOAuthCallback();
   }, [navigate]);
 
-  // Email validation
-  const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -88,7 +83,7 @@ const Login = () => {
         //   console.log("data : " + data);
         // });
 
-        console.log("userName : " + response.data.user.name);
+        // console.log("userName : " + response.data.user.name);
 
         toast.success("Login successful! Redirecting...");
         navigate("/");

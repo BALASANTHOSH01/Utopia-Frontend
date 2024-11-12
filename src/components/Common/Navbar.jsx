@@ -15,7 +15,7 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(localStorage.getItem('user'));
-  const {  logout, isAuthenticated } = useAuth();
+  const {  logout, isAuthenticated, api } = useAuth();
   
   const [treks, setTreks] = useState([]);
   const [filteredDestinations, setFilteredDestinations] = useState([]);
@@ -48,8 +48,8 @@ const Navbar = () => {
   useEffect(() => {
     const fetchTreks = async () => {
       try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_LOCAL_API_URL}/api/treks/getall`
+        const response = await api.get(
+          `/api/treks/getall`
         );
         setTreks(response.data.data.treks);
       } catch (error) {
