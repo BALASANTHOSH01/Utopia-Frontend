@@ -18,8 +18,10 @@ const useAuth = () => {
   const api = useMemo(() => {
     return axios.create({
       baseURL: API_URL,
-      withCredentials: true, // Important for sending/receiving cookies
-      headers: { 'Content-Type': 'application/json' }
+      withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
     });
   }, [API_URL]);
 
