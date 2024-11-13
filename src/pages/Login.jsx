@@ -108,7 +108,7 @@ const Login = () => {
   // Handle Google login
   const handleGoogleLogin = () => {
     try {
-      window.location.href = import.meta.env.VITE_API_URL;
+      window.location.href = import.meta.env.VITE_GOOGLE_OAUTH;
     } catch (error) {
       console.error("Google login error:", error);
       toast.error("Failed to initiate Google login");
