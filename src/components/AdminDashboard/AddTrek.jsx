@@ -339,6 +339,7 @@ const AddTrek = () => {
           value={trekDetails.reviews}
           handleChange={handleChange}
         />
+        
         <InputField
           icon={MdOutlineLocationOn}
           name={"location"}

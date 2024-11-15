@@ -60,7 +60,8 @@ const Login = () => {
         toast.error("Please fill out all fields");
         return;
       }
-
+      
+      const loadingToast = toast.loading("Please wait for login....");
       const response = await api.post(
         `/api/auth/login`,
         { email, password },
@@ -69,6 +70,7 @@ const Login = () => {
 
       if (response.data?.status === "success") {
         // Store user as JSON string in localStorage
+        toast.dismiss(loadingToast);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         
         console.log("response.data.user : "+JSON.stringify(response.data.user));
