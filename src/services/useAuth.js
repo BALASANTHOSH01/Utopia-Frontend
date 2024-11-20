@@ -1,7 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { UserContext } from '../context/UserContext.jsx';
-import { useCallback, useContext, useEffect, useRef, useState, useMemo } from 'react';
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { UserContext } from "../context/UserContext.jsx";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 
 const useAuth = () => {
   const navigate = useNavigate();
@@ -12,7 +19,7 @@ const useAuth = () => {
   const isRefreshingToken = useRef(false);
   const refreshCooldown = useRef(false);
 
-  const API_URL = import.meta.env.VITE_API_URL ;
+  const API_URL = import.meta.env.VITE_API_URL;
   // console.log("api-url : "+API_URL);
 
   // Memoize API instance
@@ -20,9 +27,9 @@ const useAuth = () => {
     return axios.create({
       baseURL: API_URL,
       withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json'
-  }
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
   }, [API_URL]);
 
@@ -34,14 +41,14 @@ const useAuth = () => {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      await api.post('/api/auth/logout');
+      await api.post("/api/auth/logout");
       console.log("Logout successful");
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error("Error during logout:", error);
     } finally {
       clearAuthData();
       setIsLoading(false);
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate, api, clearAuthData]);
 
@@ -53,15 +60,15 @@ const useAuth = () => {
 
     isRefreshingToken.current = true;
     try {
-      const response = await api.post('/api/refreshToken');
-      
+      const response = await api.post("/api/refreshToken");
+
       if (response.status === 200) {
         console.log("Token refresh successful");
         return true;
       }
       return false;
     } catch (error) {
-      console.error('Error refreshing token:', error);
+      console.error("Error refreshing token:", error);
       if (error.response?.status === 401) {
         // If refresh token is invalid/expired, logout user
         await logout();
@@ -84,16 +91,16 @@ const useAuth = () => {
     try {
       console.log("Verifying user status...");
       setIsLoading(true);
-      
-      const response = await api.get('/api/auth/verifyUser');
-      
+
+      const response = await api.get("/api/auth/verifyUser");
+
       if (response.data?.user) {
         saveUser(response.data.user);
         setIsAuthenticated(true);
         console.log("User verification successful");
       }
     } catch (error) {
-      console.error('Error verifying user:', error);
+      console.error("Error verifying user:", error);
       if (error.response?.status === 401) {
         // Try to refresh token once if verification fails
         const refreshed = await refreshAccessToken();
@@ -102,13 +109,13 @@ const useAuth = () => {
         } else {
           // If refresh successful, try verification again
           try {
-            const retryResponse = await api.get('/api/auth/verifyUser');
+            const retryResponse = await api.get("/api/auth/verifyUser");
             if (retryResponse.data?.user) {
               saveUser(retryResponse.data.user);
               setIsAuthenticated(true);
             }
           } catch (retryError) {
-            console.error('Error in retry verification:', retryError);
+            console.error("Error in retry verification:", retryError);
             await logout();
           }
         }
@@ -149,7 +156,7 @@ const useAuth = () => {
 
           try {
             const refreshed = await refreshAccessToken();
-            
+
             if (refreshed) {
               // Process all queued requests
               refreshQueue.forEach(({ resolve }) => resolve());
